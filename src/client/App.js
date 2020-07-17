@@ -1,11 +1,10 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 
-const App = () => (
-  <div />
+const fetchUpdate = () => {
+  const res = fetch('/api/').then((response) => response.json());
 
-); // App
-/*
- Make a game board (canvas?)
- populate board with sprites
- */
+  return res;
+};
+const App = () => <div>Hello World</div>;
+
 export default App;
