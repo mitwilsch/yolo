@@ -1,14 +1,8 @@
 const ctrl = require('./ctrl.js');
 
 const appRouter = function (app) {
-  app.get('/', (req, res) => {
-    res.status(200).send('Hello World');
-  });
-
-  app.get('/player', (req, res) => {
-    const player = ctrl.getPlayer();
-    res.status(200).send(player);
-  });
+  const arr = [1, 2, 3];
+  app.get('/', (req, res) => res.json(arr));
 };
 
 // route = '/player'
