@@ -3,95 +3,101 @@ import useEventListener from '@use-it/event-listener';
 import GameCanvas from './GameCanvas';
 
 const App = () => {
-  const [playerLoc, setPlayerLoc] = useState([0, 0]);
-  const [oldPlayer, setOldPlayer] = useState([0, 0]);
+// canvas
+// -----------------//
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('2d');
+  canvas.width = 512;
+  canvas.height = 480;
+  document.body.appendChild(canvas);
 
-  const [gameState, setGameState] = useState({ size: [63, 44], bounds: [] });
+  // draw image
+  // -----------------//
 
-  const loadState = () => {
-    // sets objects in bounds, according to type
-    // gets data from JSON gameboard (buildings, walls, playerstart etc)
-    const walls = ['[5,5]', '[5,4]'];
+  const sprites = '../../public/Dungeon_Character.svg';
 
-    setGameState({ ...gameState, bounds: walls });
+  let heroReady = false;
+  const heroImage = new Image();
+  heroImage.onload = () => {
+    heroReady = true;
+  };
+  heroImage.src = sprites;
+
+  // game objects
+  // -----------------//
+  const hero = {
+    speed: 16, // movement in pixels (one square/s)
+    x: 0,
+    y: 0,
   };
 
-  const moveCheck = (nextMove, oldMove) => {
-  // nextMove is [x,y]
-    // checks game board for legal moves
-    const bounds = [(1024 / 16) - 1, (720 / 16) - 1];
-    if (gameState.bounds.includes(JSON.stringify(nextMove))) {
-      console.log('bump');
-      return;
+  // Key listener
+  // -----------------//
+  const keysDown = {};
+
+  addEventListener('keydown', (e) => {
+    keysDown[e.keyCode] = true;
+    console.log('keysdown', keysDown);
+  }, false);
+
+  addEventListener('keyup', (e) => {
+    delete keysDown[e.keyCode];
+  }, false);
+
+  const update = function (modifier) {
+    if (38 in keysDown) { // Player holding Up
+      hero.y -= hero.speed * modifier;
     }
 
-    if (nextMove[0] > bounds[0]) {
-      // move is within bounds X
-      console.log('out of bounds');
-      return;
+    if (40 in keysDown) { // down
+      hero.y += hero.speed * modifier;
     }
 
-    if (nextMove[1] > bounds[1]) {
-      // move is within bounds Y
-      console.log('out of bounds');
-      return;
+    if (37 in keysDown) { // left
+      hero.x -= hero.speed * modifier;
     }
 
-    setPlayerLoc(nextMove);
-    setOldPlayer(oldMove);
+    if (39 in keysDown) { // right
+      hero.x += hero.speed * modifier;
+    }
+
+    Object.keys(keysDown).forEach((key) => {
+      delete keysDown[key];
+    });
   };
-
-  const movePlayer = (direction) => {
-    // find player in game arr
-    // move player
-
-    // window = 1024/720
-    // this needs arr of obstacles to disallow moving into
-    // maybe an intermediate controller, with layouts and current bosses locations
-
-    switch (direction) {
-      case 'up':
-        moveCheck([playerLoc[0], playerLoc[1] - 1], playerLoc);
-        break;
-      case 'down':
-        moveCheck([playerLoc[0], playerLoc[1] + 1], playerLoc);
-        break;
-
-      case 'left':
-        moveCheck([playerLoc[0] - 1, playerLoc[1]], playerLoc);
-        break;
-
-      case 'right':
-        moveCheck([playerLoc[0] + 1, playerLoc[1]], playerLoc);
-        break;
-    }
-  };
-  const handler = ({ key }) => {
-    switch (key.toLowerCase()) {
-      case 'h':
-        movePlayer('left');
-        break;
-      case 'j':
-        movePlayer('down');
-        break;
-      case 'k':
-        movePlayer('up');
-        break;
-      case 'l':
-        movePlayer('right');
-        break;
-      default:
-        console.log(key);
+  // Draw game
+  // -----------------//
+  const drawGame = () => {
+    if (heroReady) {
+      ctx.drawImage(heroImage, 0, 0, 16, 16, hero.x, hero.y, 16, 16);
     }
   };
 
-  useEventListener('keydown', handler);
+  // Reset
+  // -----------------//
+  const reset = () => {
+    hero.x = canvas.width / 2;
+    hero.y = canvas.height / 2;
+  };
 
-  useEffect(() => {
-    loadState();
-  }, []);
+  // Main
+  // -----------------//
+  const main = () => {
+    const now = Date.now();
+    const delta = now - then;
 
-  return <GameCanvas playerLoc={playerLoc} oldPlayer={oldPlayer} />;
+    update(1);
+    drawGame();
+
+    then = now;
+
+    requestAnimationFrame(main);
+  };
+
+  let then = Date.now();
+  reset();
+  main();
+  return <div />;
 };
 
 export default App;
