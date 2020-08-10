@@ -15,6 +15,7 @@ const App = () => {
   // -----------------//
 
   const sprites = '../../public/Dungeon_Character.svg';
+  const tiles = '../../public/Dungeon_Tileset.svg';
 
   let heroReady = false;
   const heroImage = new Image();
@@ -22,6 +23,13 @@ const App = () => {
     heroReady = true;
   };
   heroImage.src = sprites;
+
+  let bgReady = false;
+  const bgImage = new Image();
+  bgImage.onload = () => {
+    bgReady = true;
+  };
+  bgImage.src = tiles;
 
   // game objects
   // -----------------//
@@ -37,7 +45,7 @@ const App = () => {
 
   addEventListener('keydown', (e) => {
     keysDown[e.keyCode] = true;
-    console.log('keysdown', keysDown);
+    console.log('key: ', e.keyCode);
   }, false);
 
   addEventListener('keyup', (e) => {
@@ -45,19 +53,18 @@ const App = () => {
   }, false);
 
   const update = function (modifier) {
-    if (38 in keysDown) { // Player holding Up
+    if (38 in keysDown || 75 in keysDown) { // Player holding Up
       hero.y -= hero.speed * modifier;
     }
 
-    if (40 in keysDown) { // down
+    if (40 in keysDown || 74 in keysDown) { // down
       hero.y += hero.speed * modifier;
     }
-
-    if (37 in keysDown) { // left
+    if (37 in keysDown || 72 in keysDown) { // left
       hero.x -= hero.speed * modifier;
     }
 
-    if (39 in keysDown) { // right
+    if (39 in keysDown || 76 in keysDown) { // right
       hero.x += hero.speed * modifier;
     }
 
@@ -73,8 +80,19 @@ const App = () => {
     }
   };
 
+  const forestMap = () => {
+    if (bgReady) {
+      for (let x = 0; x < 30; x++) {
+        for (let y = 0; y < 30; y++) {
+          ctx.drawImage(bgImage, 16, 16, 32, 32, x * 16, y * 16, 16, 16);
+        }
+      }
+    }
+  };
+
   // Reset
   // -----------------//
+  // Sets initial state of objects
   const reset = () => {
     hero.x = canvas.width / 2;
     hero.y = canvas.height / 2;
@@ -86,16 +104,24 @@ const App = () => {
     const now = Date.now();
     const delta = now - then;
 
+    // updates character movement
     update(1);
+    // Draws background
+    // Runs on every loop
+    forestMap();
+    // Draws objects to canvas
     drawGame();
 
     then = now;
 
+    // loops on animation frame
     requestAnimationFrame(main);
   };
 
   let then = Date.now();
+
   reset();
+
   main();
   return <div />;
 };
