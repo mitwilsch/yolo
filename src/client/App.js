@@ -80,13 +80,34 @@ const App = () => {
     }
   };
 
-  const forestMap = () => {
+  // Tile picker
+  // -----------------//
+  const tilePicker = (tile, x, y) => {
+    // 10x10 grid of sprites
+    // bgimage image is 160*160
+    switch (tile) {
+      case 'torch':
+        // converts x/y to 16tile
+        // this should go somewhere higher up, confuses input
+        ctx.drawImage(bgImage, 0, 144, 16, 16, x * 16, y * 16, 16, 16);
+        break;
+      default:
+        console.log('Tile: ', tile, ', Not found.');
+        break;
+    }
+  };
+
+  // Tile maps
+  // -----------------//
+  const dungeonMap = () => {
     if (bgReady) {
       for (let x = 0; x < 30; x++) {
         for (let y = 0; y < 30; y++) {
           ctx.drawImage(bgImage, 16, 16, 32, 32, x * 16, y * 16, 16, 16);
         }
       }
+
+      tilePicker('torch', 5, 5);
     }
   };
 
@@ -108,12 +129,10 @@ const App = () => {
     update(1);
     // Draws background
     // Runs on every loop
-    forestMap();
+    dungeonMap();
     // Draws objects to canvas
     drawGame();
-
     then = now;
-
     // loops on animation frame
     requestAnimationFrame(main);
   };
@@ -123,7 +142,11 @@ const App = () => {
   reset();
 
   main();
-  return <div />;
+  return (
+    <div>
+      <img src={tiles} />
+    </div>
+  );
 };
 
 export default App;
