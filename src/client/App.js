@@ -52,11 +52,26 @@ const App = () => {
     delete keysDown[e.keyCode];
   }, false);
 
+  // move checker
+  //
+  const checkMove = (barriers, move) => {
+    barriers.filter((el) => {
+      if (el.x == move.x && el.y == move.y) {
+        console.log(move.x, move.y);
+        return false;
+      }
+
+      return true;
+    });
+  };
   // Update
   // -----------------//
   const update = (map) => {
     if (38 in keysDown || 75 in keysDown) { // Player holding Up
       hero.y -= 1;
+      checkMove(map.bounds, hero);
+      /// this operation takes almost a second to do
+      //thats why the move checked is not working
     }
 
     if (40 in keysDown || 74 in keysDown) { // down
