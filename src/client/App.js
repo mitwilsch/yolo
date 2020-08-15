@@ -53,38 +53,45 @@ const App = () => {
   }, false);
 
   // move checker
-  //
+  // -----------------//
   const checkMove = (barriers, move) => {
-    barriers.filter((el) => {
-      if (el.x == move.x && el.y == move.y) {
-        console.log(move.x, move.y);
-        return false;
-      }
+    const solids = barriers.find((el) => el.x === hero.x && el.y === hero.y && el.isSolid);
 
-      return true;
-    });
+    if (solids) {
+      return solids;
+    }
+    return false;
   };
+
   // Update
   // -----------------//
   const update = (map) => {
     if (38 in keysDown || 75 in keysDown) { // Player holding Up
       hero.y -= 1;
-      checkMove(map.bounds, hero);
-      /// this operation takes almost a second to do
-      //thats why the move checked is not working
+      if (checkMove(map.bounds, hero)) {
+        hero.y += 1;
+      }
     }
 
     if (40 in keysDown || 74 in keysDown) { // down
       hero.y += 1;
+      if (checkMove(map.bounds, hero)) {
+        hero.y -= 1;
+      }
     }
     if (37 in keysDown || 72 in keysDown) { // left
       hero.x -= 1;
+      if (checkMove(map.bounds, hero)) {
+        hero.x += 1;
+      }
     }
 
     if (39 in keysDown || 76 in keysDown) { // right
       hero.x += 1;
+      if (checkMove(map.bounds, hero)) {
+        hero.x -= 1;
+      }
     }
-    // TODO needs boundary checking somewhere here
     Object.keys(keysDown).forEach((key) => {
       delete keysDown[key];
     });
@@ -135,12 +142,20 @@ const App = () => {
 
     // ugly loops to make walls
     for (let i = 0; i < 30; i++) {
-      map.bounds.push({ x: 0, y: i, tile: 'leftWall' });
-      map.bounds.push({ x: 29, y: i, tile: 'rightWall' });
+      map.bounds.push({
+        x: 0, y: i, tile: 'leftWall', isSolid: true,
+      });
+      map.bounds.push({
+        x: 29, y: i, tile: 'rightWall', isSolid: true,
+      });
     }
     for (let i = 0; i < 30; i++) {
-      map.bounds.push({ x: i, y: 0, tile: 'topWall' });
-      map.bounds.push({ x: i, y: 29, tile: 'bottomWall' });
+      map.bounds.push({
+        x: i, y: 0, tile: 'topWall', isSolid: true,
+      });
+      map.bounds.push({
+        x: i, y: 29, tile: 'bottomWall', isSolid: true,
+      });
     }
 
     return map;
