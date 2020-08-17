@@ -1,6 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import useEventListener from '@use-it/event-listener';
-import GameCanvas from './GameCanvas';
+import React from 'react';
+import tiles from './tiles.js';
+import makeMap from './map.js';
+
+const map = makeMap();
 
 const App = () => {
 // canvas
@@ -10,26 +12,6 @@ const App = () => {
   canvas.width = 512;
   canvas.height = 480;
   document.body.appendChild(canvas);
-
-  // draw image
-  // -----------------//
-
-  const sprites = '../../public/Dungeon_Character.svg';
-  const tiles = '../../public/Dungeon_Tileset.svg';
-
-  let heroReady = false;
-  const heroImage = new Image();
-  heroImage.onload = () => {
-    heroReady = true;
-  };
-  heroImage.src = sprites;
-
-  let bgReady = false;
-  const bgImage = new Image();
-  bgImage.onload = () => {
-    bgReady = true;
-  };
-  bgImage.src = tiles;
 
   // game objects
   // -----------------//
@@ -56,7 +38,7 @@ const App = () => {
   // -----------------//
   const checkMove = (barriers, move) => {
     const solids = barriers.find((el) => el.x === hero.x && el.y === hero.y && el.isSolid);
-
+    // if block moving to has solid, return true
     if (solids) {
       return solids;
     }
@@ -97,89 +79,30 @@ const App = () => {
     });
   };
 
-  // Tile picker
-  // -----------------//
-  const tilePicker = (tile, x, y) => {
-    // 10x10 grid of sprites
-    // bgimage image is 160*160
-
-    // tilepicker needs all tiles
-    // bgimage alone is 100 tiles
-    // most of these can be named? How much automation should this have
-    // I want this function to draw based on name. Maybe have one more thing, object of mappings to tileset
-    switch (tile) {
-      case 'torch':
-        // converts x/y to 16tile
-        // this should go somewhere higher up, confuses input
-        ctx.drawImage(bgImage, 0, 144, 16, 16, x * 16, y * 16, 16, 16);
-        break;
-      case 'leftWall':
-        ctx.drawImage(bgImage, 0, 0, 16, 16, x * 16, y * 16, 16, 16);
-        break;
-      case 'rightWall':
-        ctx.drawImage(bgImage, 80, 0, 16, 16, x * 16, y * 16, 16, 16);
-        break;
-      case 'topWall':
-        ctx.drawImage(bgImage, 17, 0, 16, 16, x * 16, y * 16, 16, 16);
-        break;
-      case 'bottomWall':
-        ctx.drawImage(bgImage, 17, 80, 16, 16, x * 16, y * 16, 16, 16);
-        break;
-      default:
-        console.log('Tile: ', tile, ', Not found.');
-        break;
-    }
-  };
-
-  // Tile maps
-  // -----------------//
-  const dungeonMap = () => {
-    // temporary, ideally we get map from server
-    // define our map
-    const map = {
-      bounds: [],
-    };
-
-    // ugly loops to make walls
-    for (let i = 0; i < 30; i++) {
-      map.bounds.push({
-        x: 0, y: i, tile: 'leftWall', isSolid: true,
-      });
-      map.bounds.push({
-        x: 29, y: i, tile: 'rightWall', isSolid: true,
-      });
-    }
-    for (let i = 0; i < 30; i++) {
-      map.bounds.push({
-        x: i, y: 0, tile: 'topWall', isSolid: true,
-      });
-      map.bounds.push({
-        x: i, y: 29, tile: 'bottomWall', isSolid: true,
-      });
-    }
-
-    return map;
-  };
-
   // Draw game
   // -----------------//
   const drawGame = (map) => {
+    // this should run once at startup, to draw buildings, floors, etc
+    // second function should replace sprites when character moves
+
     // gen floor
-    if (bgReady) {
+
+    const floorGen = () => {
       for (let x = 0; x < 30; x++) {
         for (let y = 0; y < 30; y++) {
-          ctx.drawImage(bgImage, 16, 16, 32, 32, x * 16, y * 16, 16, 16);
+          tiles(ctx, 'floor', x, y);
         }
       }
 
       for (let i = 0; i < map.bounds.length; i++) {
-        tilePicker(map.bounds[i].tile, map.bounds[i].x, map.bounds[i].y);
+        tiles(ctx, map.bounds[i].tile, map.bounds[i].x, map.bounds[i].y);
       }
-    }
+    };
 
-    if (heroReady) {
-      ctx.drawImage(heroImage, 0, 0, 16, 16, hero.x * 16, hero.y * 16, 16, 16);
-    }
+    floorGen();
+    // lift this out of drawGame, should be run once on game start
+    // additional player moving function can redraw broken floor
+    tiles(ctx, 'hero', hero.x, hero.y);
   };
 
   // Reset
@@ -195,7 +118,6 @@ const App = () => {
     const now = Date.now();
     const delta = now - then;
 
-    const map = dungeonMap();
     // updates character movement
     update(map);
     // Draws background
@@ -223,3 +145,18 @@ const App = () => {
 };
 
 export default App;
+
+/* Checklist:
+ * Draws other sprites (enemies)
+ * enemies move randomly
+ * enemies can be killed by touch contact
+ * enemies have health
+ *
+ * draws buildings
+ * contact with building launched dialog
+ * player has inventory, health, attack
+ * player can be killed
+ *
+ * player can move diagonally
+ *
+ */
